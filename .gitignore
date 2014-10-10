@@ -44,6 +44,31 @@ modules.builtin
 /System.map
 /Module.markers
 /Module.symvers
+/compare
+/copyzip.sh
+/makeboot.sh
+/modules.sh
+/patch
+/arch/arm/boot/Image
+/arch/arm/boot/compressed/ashldi3.S
+/arch/arm/boot/compressed/lib1funcs.S
+/arch/arm/boot/compressed/piggy.xzkern
+/arch/arm/boot/compressed/vmlinux
+/arch/arm/boot/compressed/vmlinux.lds
+/arch/arm/boot/zImage
+/arch/arm/kernel/vmlinux.lds
+/arch/arm/mach-msm/cpufreq_limit.c
+/drivers/tty/vt/consolemap_deftbl.c
+/drivers/tty/vt/defkeymap.c
+/kernel/config_data.h
+/kernel/timeconst.h
+/lib/crc32table.h
+/lib/gen_crc32table
+/net/wireless/regdb.c
+/security/selinux/av_permissions.h
+/security/selinux/flask.h
+/usr/gen_init_cpio
+/usr/initramfs_data.cpio
 
 #
 # Debian directory (make deb-pkg)
