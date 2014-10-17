@@ -1,1 +1,1 @@
-sudo adb wait-for-device && sudo adb push ../EmeraldKK_Kernel_output/*.zip /sdcard/. && sudo adb reboot recovery
+sudo adb wait-for-device && sudo adb push ../Emerald_Kernel_output/*.zip /sdcard/. && sudo adb reboot recovery

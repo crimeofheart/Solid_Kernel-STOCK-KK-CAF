@@ -1,1 +1,1 @@
-cp arch/arm/boot/zImage ../EmeraldKK_Kernel_output/zImage
+cp arch/arm/boot/zImage ../Emerald_Kernel_output/zImage
