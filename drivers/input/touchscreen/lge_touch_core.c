@@ -4142,9 +4142,7 @@ static int touch_remove(struct i2c_client *client)
 		hrtimer_cancel(&hr_touch_trigger_timer);
 	}
 #endif
-#ifdef MULTI_GHOST_DETECT
-	cancel_delayed_work_sync(&ts->work_multi_ghost);
-#endif
+
 	input_unregister_device(ts->input_dev);
 	kfree(ts);
 
