@@ -4289,7 +4289,6 @@ static void touch_late_resume(struct early_suspend *h)
 	else
 #endif
 	{
-		release_all_ts_event(ts);
 		touch_power_cntl(ts, ts->pdata->role->resume_pwr);
 #ifdef CUST_G_TOUCH
 		if (ts->pdata->role->ghost_detection_enable) {
