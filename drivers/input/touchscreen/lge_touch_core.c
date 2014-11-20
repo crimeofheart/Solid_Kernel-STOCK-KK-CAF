@@ -4076,7 +4076,7 @@ static int touch_probe(struct i2c_client *client, const struct i2c_device_id *id
 	/* accuracy solution */
 	if (ts->pdata->role->accuracy_filter_enable){
 		ts->accuracy_filter.ignore_pressure_gap = 5;
-		ts->accuracy_filter.delta_max = 30;
+		ts->accuracy_filter.delta_max = 100;
 		ts->accuracy_filter.max_pressure = 255;
 		ts->accuracy_filter.time_to_max_pressure = one_sec / 20;
 		ts->accuracy_filter.direction_count = one_sec / 6;
@@ -4152,7 +4152,7 @@ static int touch_remove(struct i2c_client *client)
 	/* Specific device remove */
 	if (touch_device_func->remove)
 		touch_device_func->remove(ts->client);
-	release_all_ts_event(ts);
+
 	/* Power off */
 	touch_power_cntl(ts, POWER_OFF);
 
@@ -4200,14 +4200,12 @@ static void touch_early_suspend(struct early_suspend *h)
 	bool prevent_sleep = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
-	prevent_sleep = (s2w_switch == 1);
+	prevent_sleep = (s2w_switch > 0) && (s2w_s2sonly == 0);
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 	prevent_sleep = prevent_sleep || (dt2w_switch > 0);
 #endif
 #endif
-
-	atomic_set(&ts->keypad_enable, 0);
 
 	if (unlikely(touch_debug_mask & DEBUG_TRACE))
 		TOUCH_DEBUG_MSG("\n");
@@ -4221,9 +4219,15 @@ static void touch_early_suspend(struct early_suspend *h)
 	if (prevent_sleep) {
 		enable_irq_wake(ts->client->irq);
 		release_all_ts_event(ts);
+		atomic_set(&ts->keypad_enable, 0);
 	} else
 #endif
 	{
+		if (ts->pdata->role->operation_mode)
+			disable_irq(ts->client->irq);
+		else
+			hrtimer_cancel(&ts->timer);
+
 #ifdef CUST_G_TOUCH
 		if (ts->pdata->role->ghost_detection_enable) {
 			resume_flag = 0;
@@ -4233,10 +4237,6 @@ static void touch_early_suspend(struct early_suspend *h)
 		}
 #endif
 
-		if (ts->pdata->role->operation_mode)
-			disable_irq(ts->client->irq);
-		else
-			hrtimer_cancel(&ts->timer);
 #ifdef CUST_G_TOUCH
 		if (ts->pdata->role->ghost_detection_enable) {
 			hrtimer_cancel(&hr_touch_trigger_timer);
@@ -4266,14 +4266,12 @@ static void touch_late_resume(struct early_suspend *h)
 	bool prevent_sleep = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
-	prevent_sleep = (s2w_switch == 1);
+	prevent_sleep = (s2w_switch > 0) && (s2w_s2sonly == 0);
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 	prevent_sleep = prevent_sleep || (dt2w_switch > 0);
 #endif
 #endif
-
-	atomic_set(&ts->keypad_enable, 1);
 
 	if (unlikely(touch_debug_mask & DEBUG_TRACE))
 		TOUCH_DEBUG_MSG("\n");
@@ -4284,12 +4282,21 @@ static void touch_late_resume(struct early_suspend *h)
 	}
 
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
-	if (prevent_sleep)
+	if (prevent_sleep) {
 		disable_irq_wake(ts->client->irq);
-	else
+		atomic_set(&ts->keypad_enable, 1);
+	} else
 #endif
 	{
 		touch_power_cntl(ts, ts->pdata->role->resume_pwr);
+
+		if (ts->pdata->role->operation_mode)
+			enable_irq(ts->client->irq);
+		else
+			hrtimer_start(&ts->timer,
+				ktime_set(0, ts->pdata->role->report_period),
+						HRTIMER_MODE_REL);
+
 #ifdef CUST_G_TOUCH
 		if (ts->pdata->role->ghost_detection_enable) {
 			resume_flag = 1;
@@ -4299,13 +4306,6 @@ static void touch_late_resume(struct early_suspend *h)
 #endif
 		}
 #endif
-
-		if (ts->pdata->role->operation_mode)
-			enable_irq(ts->client->irq);
-		else
-			hrtimer_start(&ts->timer,
-				ktime_set(0, ts->pdata->role->report_period),
-						HRTIMER_MODE_REL);
 
 		if (ts->pdata->role->resume_pwr == POWER_ON)
 			queue_delayed_work(touch_wq, &ts->work_init,
