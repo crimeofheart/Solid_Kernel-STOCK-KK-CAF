@@ -1207,6 +1207,8 @@ extern void init_rt_rq(struct rt_rq *rt_rq, struct rq *rq);
 
 extern void account_cfs_bandwidth_used(int enabled, int was_enabled);
 
+extern void update_idle_cpu_load(struct rq *this_rq);
+
 #ifdef CONFIG_NO_HZ
 enum rq_nohz_flag_bits {
 	NOHZ_TICK_STOPPED,
