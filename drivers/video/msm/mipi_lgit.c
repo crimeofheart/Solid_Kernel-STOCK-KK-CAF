@@ -41,6 +41,11 @@ static int lcd_isactive = 0;
 
 #define DSV_ONBST 57
 
+// To prevent doubletap2wake 3 taps issue when suspended. - by jollaman999
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+extern bool scr_suspended;
+#endif
+
 #define LGIT_IEF_SWITCH
 
 #ifdef LGIT_IEF_SWITCH
@@ -172,6 +177,10 @@ int mipi_lgit_lcd_on(struct platform_device *pdev)
 	}
 
 	pr_info("%s:- wxga \n", __func__);
+	// To prevent doubletap2wake 3 taps issue when suspended. - by jollaman999
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	scr_suspended = false;
+#endif
 	return 0;
 }
 
@@ -223,6 +232,10 @@ int mipi_lgit_lcd_off(struct platform_device *pdev)
 	}
 
 	pr_info("%s:- wxga \n", __func__);
+	// To prevent doubletap2wake 3 taps issue when suspended. - by jollaman999
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	scr_suspended = true;
+#endif
 	return 0;
 }
 
